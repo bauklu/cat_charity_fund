@@ -17,6 +17,9 @@ class CharityProjectUpdate(BaseModel):
     description: Optional[str] = Field(None, min_length=1)
     full_amount: Optional[conint(gt=0)] = None  # type: ignore
 
+    class Config:
+        extra = 'forbid'
+
     @validator('name')
     def name_cannot_be_null(cls, value):
         """
