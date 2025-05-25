@@ -1,0 +1,38 @@
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.crud.base import CRUDBase
+from app.models import Donation, User
+
+
+class CRUDDonation(CRUDBase):
+    """
+    Класс для выполнения операций CRUD
+    над моделями пожертвований.
+    """
+
+    async def get_by_user(
+        self,
+        session: AsyncSession,
+        user: User
+    ) -> list[Donation]:
+        """Возвращает список пожертвований конкретного пользователя."""
+        donations = await session.execute(
+            select(Donation).where(
+                Donation.user_id == user.id
+            )
+        )
+        return donations.scalars().all()
+
+    async def get_future_donations_for_project(
+        self,
+        project_id: int,
+        session: AsyncSession
+    ):
+        result = await session.execute(
+            select(Donation).where(Donation.charity_project_id == project_id)
+        )
+        return result.scalars().all()
+
+
+donation_crud = CRUDDonation(Donation)
