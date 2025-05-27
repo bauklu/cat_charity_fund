@@ -34,5 +34,20 @@ class CRUDDonation(CRUDBase):
         )
         return result.scalars().all()
 
+    async def get_not_fully_invested(self, session: AsyncSession):
+        result = await session.execute(
+            select(Donation).where(
+                Donation.fully_invested.is_(False)
+            ).order_by(Donation.create_date)
+        )
+        return result.scalars().all()
+
+    async def add_to_session(
+        self,
+        db_obj: Donation,
+        session: AsyncSession
+    ) -> None:
+        session.add(db_obj)
+
 
 donation_crud = CRUDDonation(Donation)

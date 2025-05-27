@@ -1,3 +1,5 @@
+from http import HTTPStatus
+
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -39,25 +41,23 @@ async def create_new_charity_project(
     async def after_create_func(_, session):
         await invest_funds(session)
 
-    new_project = await charity_project_crud.create(
+    return await charity_project_crud.create(
         charity_project,
         session,
         after_create=after_create_func
     )
-    return new_project
 
 
 @router.get(
     '/',
     response_model=list[CharityProjectDB],
     response_model_exclude_none=True,
-    status_code=200
+    status_code=HTTPStatus.OK
 )
 async def get_all_charity_projects(
         session: AsyncSession = Depends(get_async_session),
 ):
-    all_projects = await charity_project_crud.get_multi(session)
-    return all_projects
+    return await charity_project_crud.get_multi(session)
 
 
 @router.patch(
@@ -86,10 +86,9 @@ async def partially_update_charity_project(
     if obj_in.full_amount is not None:
         validate_full_amount(charity_project, obj_in.full_amount)
 
-    charity_project = await charity_project_crud.update(
+    return await charity_project_crud.update(
         charity_project, obj_in, session
     )
-    return charity_project
 
 
 @router.delete(
@@ -109,15 +108,14 @@ async def remove_charity_project(
 
     check_project_not_invested(charity_project)
 
-    charity_project = await charity_project_crud.remove(
+    return await charity_project_crud.remove(
         charity_project,
         session
     )
-    return charity_project
 
 
 @router.get(
-    '{charity_project_id}/donations',
+    '/{charity_project_id}/donations',
     response_model=list[DonationAdminRead],
     response_model_exclude={'user_id'},
 )
@@ -128,7 +126,5 @@ async def get_donations_for_project(
     await check_charity_project_exists(
         charity_project_id, session
     )
-    donations = await donation_crud.get_future_donations_for_project(
-        project_id=charity_project_id, session=session
-    )
-    return donations
+    return await donation_crud.get_future_donations_for_project(
+        project_id=charity_project_id, session=session)

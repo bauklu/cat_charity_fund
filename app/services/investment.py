@@ -1,8 +1,11 @@
 from datetime import datetime
-from app.models.charity_project import CharityProject
-from app.models.donation import Donation
+
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
+
+from app.crud.charity_project import charity_project_crud
+from app.crud.donation import donation_crud
+from app.models.charity_project import CharityProject  # noqa
+from app.models.donation import Donation  # noqa
 
 
 async def invest_funds(session: AsyncSession):
@@ -10,19 +13,9 @@ async def invest_funds(session: AsyncSession):
     Автоматически распределяет средства между открытыми проектами
     и активными пожертвованиями.
     """
-    projects = await session.execute(
-        select(CharityProject).where(
-            CharityProject.fully_invested.is_(False)
-        ).order_by(CharityProject.create_date)
-    )
-    projects = projects.scalars().all()
+    projects = await charity_project_crud.get_not_fully_invested(session)
 
-    donations = await session.execute(
-        select(Donation).where(
-            Donation.fully_invested.is_(False)
-        ).order_by(Donation.create_date)
-    )
-    donations = donations.scalars().all()
+    donations = await donation_crud.get_not_fully_invested(session)
 
     for project in projects:
         for donation in donations:
@@ -45,5 +38,6 @@ async def invest_funds(session: AsyncSession):
             if donation.invested_amount == donation.full_amount:
                 donation.fully_invested = True
                 donation.close_date = datetime.utcnow()
-            session.add(project)
-            session.add(donation)
+
+            await charity_project_crud.add_to_session(project, session)
+            await donation_crud.add_to_session(donation, session)

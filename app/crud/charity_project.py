@@ -24,8 +24,25 @@ class CRUDCharityProject(CRUDBase):
                 CharityProject.name == project_name
             )
         )
-        db_project_id = db_project_id.scalars().first()
-        return db_project_id
+        return db_project_id.scalars().first()
+
+    async def get_not_fully_invested(
+        self,
+        session: AsyncSession
+    ) -> list[CharityProject]:
+        project = await session.execute(
+            select(CharityProject).where(
+                CharityProject.fully_invested.is_(False)
+            ).order_by(CharityProject.create_date)
+        )
+        return project.scalars().all()
+
+    async def add_to_session(
+        self,
+        db_obj: CharityProject,
+        session: AsyncSession
+    ) -> None:
+        session.add(db_obj)
 
 
 charity_project_crud = CRUDCharityProject(CharityProject)
