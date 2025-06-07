@@ -1,3 +1,7 @@
+# добавлено
+import sys
+import os
+
 from pathlib import Path
 
 import pytest
@@ -6,6 +10,9 @@ from mixer.backend.sqlalchemy import Mixer as _mixer
 from sqlalchemy import create_engine
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
+
+# добавлено
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 
 try:
