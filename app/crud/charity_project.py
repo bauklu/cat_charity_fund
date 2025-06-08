@@ -6,11 +6,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.crud.base import CRUDBase
 from constants import (SECONDS_IN_DAY,
-                           SECONDS_IN_HOUR,
-                           SECONDS_IN_MINUTE,
-                           MICROSECONDS_WIDTH,
-                           WIDTH
-                           )
+                       SECONDS_IN_HOUR,
+                       SECONDS_IN_MINUTE,
+                       MICROSECONDS_WIDTH,
+                       WIDTH
+                       )
 from app.models.charity_project import CharityProject
 
 
