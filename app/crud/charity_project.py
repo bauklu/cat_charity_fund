@@ -5,7 +5,7 @@ from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.crud.base import CRUDBase
-from app.constants import (SECONDS_IN_DAY,
+from constants import (SECONDS_IN_DAY,
                            SECONDS_IN_HOUR,
                            SECONDS_IN_MINUTE,
                            MICROSECONDS_WIDTH,
