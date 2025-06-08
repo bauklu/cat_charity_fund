@@ -1,7 +1,10 @@
 from fastapi import APIRouter
 
 from app.api.endpoints import (
-    google_api_router, charity_project_router, donation_router, user_router)
+    #google_api_router,
+    charity_project_router,
+    donation_router, user_router
+)
 
 main_router = APIRouter()
 main_router.include_router(
