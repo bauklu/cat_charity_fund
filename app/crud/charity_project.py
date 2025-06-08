@@ -5,6 +5,12 @@ from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.crud.base import CRUDBase
+from app.constants import (SECONDS_IN_DAY,
+                           SECONDS_IN_HOUR,
+                           SECONDS_IN_MINUTE,
+                           MICROSECONDS_WIDTH,
+                           WIDTH
+                           )
 from app.models.charity_project import CharityProject
 
 
@@ -48,18 +54,21 @@ class CRUDCharityProject(CRUDBase):
     async def get_project_by_completion_rate(
             self, session: AsyncSession
     ) -> List[dict]:
+        duration_expr = (
+            (
+                func.julianday(CharityProject.close_date) -
+                func.julianday(CharityProject.create_date)
+            ) * SECONDS_IN_DAY
+        ).label('duration_seconds')
+
         stmt = (
             select(
                 CharityProject.name,
                 CharityProject.description,
-                (
-                    (
-                        func.julianday(CharityProject.close_date) -
-                        func.julianday(CharityProject.create_date)
-                    ) * 86400
-                ).label('duration_seconds')
+                duration_expr
             )
             .where(CharityProject.fully_invested.is_(True))
+            .order_by('duration_seconds')
         )
 
         result = await session.execute(stmt)
@@ -67,11 +76,12 @@ class CRUDCharityProject(CRUDBase):
 
         def format_duration(delta: timedelta) -> str:
             days = delta.days
-            hours, remainder = divmod(delta.seconds, 3600)
-            minutes, seconds = divmod(remainder, 60)
+            hours, remainder = divmod(delta.seconds, SECONDS_IN_HOUR)
+            minutes, seconds = divmod(remainder, SECONDS_IN_MINUTE)
             return (
                 f"{days} day{'s' if days != 1 else ''}, "
-                f"{hours:02}:{minutes:02}:{seconds:02}.{delta.microseconds:06}"
+                f"{hours:0{WIDTH}}:{minutes:0{WIDTH}}:{seconds:0{WIDTH}}."
+                f"{delta.microseconds:0{MICROSECONDS_WIDTH}}"
             )
 
         projects = []
@@ -87,7 +97,7 @@ class CRUDCharityProject(CRUDBase):
                 'charityproject_description': description
             })
 
-        return sorted(projects, key=lambda proj: proj['duration'])
+        return projects
 
 
 charity_project_crud = CRUDCharityProject(CharityProject)
